@@ -112,11 +112,15 @@ app.post('/checkin', authenticateToken, async (req, res) => {
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
     };
+
+    console.log("office:",officeLocation,"user:",userLocation);
+    
   
     const distance = getDistance(userLocation, officeLocation); // distance in meters
+    console.log(distance)
   
     if (distance > 100) {
-      return res.status(403).json({ error: 'Not within allowed range' });
+      return res.status(403).json({ error: 'Not within office' });
     }
 
     // Check if already checked in today

@@ -24,11 +24,11 @@ const Attendance = ({ user }) => {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const response = await axios.get('http://localhost:3000/attendance/today', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      
+
       setStatus(response.data.status);
     } catch (error) {
       console.error('Error checking status:', error);
@@ -38,28 +38,48 @@ const Attendance = ({ user }) => {
   };
 
   const handleCheckIn = async () => {
-    try {
-      setLoading(true);
-      await axios.post('http://localhost:3000/checkin', {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setStatus('present');
-      setMessage('Successfully checked in');
-      setError('');
-    } catch (error) {
-      if(error.response?.data?.error === "Already checked in today"){
-        setStatus('present');
-        setError('Already checked in today');
-        // setError('');
-      }
-      else{
-        setError(error.response?.data?.error || 'Check-in failed');
-        setMessage('');
-      }
-    } finally {
-      setLoading(false);
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser.");
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          setLoading(true);
+          await axios.post(
+            'http://localhost:3000/checkin',
+            { latitude, longitude },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+              }
+            }
+          );
+          setStatus('present');
+          setMessage('Successfully checked in');
+          setError('');
+        } catch (error) {
+          if (error.response?.data?.error === "Already checked in today") {
+            setStatus('present');
+            setError('Already checked in today');
+          } else {
+            setError(error.response?.data?.error || 'Check-in failed');
+            setMessage('');
+          }
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setError("Location access denied or unavailable.");
+      }
+    );
   };
+
 
   const handleCheckOut = async () => {
     try {
@@ -71,11 +91,11 @@ const Attendance = ({ user }) => {
       setMessage('Successfully checked out');
       setError('');
     } catch (error) {
-      if(error.response?.data?.error === "Already checked out today"){
+      if (error.response?.data?.error === "Already checked out today") {
         setStatus('checked-out');
         setError('Already checked out today');
       }
-      else{
+      else {
         setError(error.response?.data?.error || 'Check-out failed');
         setMessage('');
       }
