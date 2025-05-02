@@ -93,7 +93,7 @@ const BottomNav = ({ onLogout }) => {
           />
           <BottomNavigationAction
             label="Logout"
-            value="logout"
+            value=""
             icon={<LogoutIcon />}
             onClick={onLogout}
           />

@@ -107,18 +107,18 @@ app.post('/checkin', authenticateToken, async (req, res) => {
       latitude: process.env.lat,
       longitude: process.env.long,
     };
-  
+
     const userLocation = {
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
     };
 
-    console.log("office:",officeLocation,"user:",userLocation);
-    
-  
+    // console.log("office:", officeLocation, "user:", userLocation);
+
+
     const distance = getDistance(userLocation, officeLocation); // distance in meters
-    console.log(distance)
-  
+    // console.log(distance)
+
     if (distance > 100) {
       return res.status(403).json({ error: 'Not within office' });
     }
@@ -139,7 +139,6 @@ app.post('/checkin', authenticateToken, async (req, res) => {
     const attendance = new Attendance({
       user: req.user.id,
       checkInTime: new Date(),
-      ipAddress: clientIp
     });
     await attendance.save();
 
@@ -174,6 +173,27 @@ app.post('/checkin', authenticateToken, async (req, res) => {
 
 app.post('/checkout', authenticateToken, async (req, res) => {
   try {
+    const { latitude, longitude } = req.body;
+
+    const officeLocation = {
+      latitude: process.env.lat,
+      longitude: process.env.long,
+    };
+
+    const userLocation = {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    };
+
+    // console.log("office:", officeLocation, "user:", userLocation);
+
+
+    const distance = getDistance(userLocation, officeLocation); // distance in meters
+    // console.log(distance)
+
+    if (distance > 100) {
+      return res.status(403).json({ error: 'Not within office' });
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -185,7 +205,7 @@ app.post('/checkout', authenticateToken, async (req, res) => {
     if (!attendance) {
       return res.status(400).json({ error: 'No active check-in found for today' });
     }
-    if(attendance.status === 'checked-out'){
+    if (attendance.status === 'checked-out') {
       return res.status(400).json({ error: 'Already checked out today' });
     }
 
@@ -233,6 +253,28 @@ app.get('/dashboard', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/attendance/today', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // console.log(user, today);
+    const attendance = await Attendance.find({
+      user: req.user.id,
+      checkInTime: { $gte: today },
+    });
+    // console.log(attendance);
+    if (attendance.length > 0) {
+      if (attendance[0].status === 'present') {
+        return res.json({ status: 'present', message: 'You already checked in today' });
+      }
+      return res.json({ status: 'checked-out', message: 'You already checked out today' });
+    }
+    return res.json({ status: null });
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching attendance data' });
+  }
+})
+
 app.get('/dashboard/employee-summary', authenticateToken, async (req, res) => {
   try {
     const { month, year } = req.query;
@@ -246,15 +288,34 @@ app.get('/dashboard/employee-summary', authenticateToken, async (req, res) => {
         checkInTime: { $gte: startDate, $lte: endDate }
       });
 
-      // Calculate total present as the number of attendance records
+      function getWorkingDaysUntilToday(year, month) {
+        const today = new Date();
+        const isCurrentMonth = parseInt(year) === today.getFullYear() && parseInt(month) === (today.getMonth()+1);
+        // console.log(year,today.getFullYear(),month,today.getMonth()+1)
+        const daysInMonth = new Date(year, month, 0).getDate(); // Total days in month
+
+        // console.log(isCurrentMonth);
+        
+
+        const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
+        // console.log(today.getDate())
+        // console.log(lastDay)
+
+        let workingDays = 0;
+        for (let day = 1; day <= lastDay; day++) {
+          const date = new Date(year, month - 1, day); // JS months are 0-based
+          const dayOfWeek = date.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
+            workingDays++;
+          }
+        }
+
+        return workingDays;
+      }
+
       const totalPresent = attendances.length;
-      // console.log(totalPresent);
-      // Calculate total days in the month
-      const daysInMonth = new Date(year, month, 0).getDate();
-      // console.log(daysInMonth);
-      // Calculate total absent as days in month minus total present
-      const totalAbsent = daysInMonth - totalPresent;
-      // console.log(totalAbsent);
+      const workingDaysUntilToday = getWorkingDaysUntilToday(year, month);
+      const totalAbsent = workingDaysUntilToday - totalPresent;
 
       const workingHours = attendances.reduce((total, attendance) => {
         if (attendance.checkInTime && attendance.checkOutTime) {

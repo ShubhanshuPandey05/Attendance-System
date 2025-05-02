@@ -44,12 +44,12 @@ const App = () => {
     !!localStorage.getItem('token')
   );
 
-  console.log(isAuthenticated);
+  // console.log(isAuthenticated);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
   const [userRole, setUserRole] = useState(user?.role || 'employee');
 
 
-  console.log(user);
+  // console.log(user);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -67,7 +67,7 @@ const App = () => {
             path="/login"
             element={
               !isAuthenticated ? (
-                <Login setUser={setUser}/>
+                <Login setUser={setUser} setIsAuthenticated={setIsAuthenticated} setUserRole={setUserRole}/>
               ) : (
                 <Navigate to="/" replace />
               )

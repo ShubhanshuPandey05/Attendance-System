@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 
-const Login = ({ setUser }) => {
+const Login = ({ setUser, setIsAuthenticated, setUserRole }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,9 +24,12 @@ const Login = ({ setUser }) => {
         email,
         password
       });
+      // const data = await response.json();
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setUser(response.data.user);
+      setIsAuthenticated(true)
+      setUserRole(response.data.user.role)
       navigate(response.data.user.role === 'admin' ? '/dashboard' : '/attendance');
     } catch (error) {
       setError(error.response?.data?.error || 'Login failed');

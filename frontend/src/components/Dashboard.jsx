@@ -103,99 +103,57 @@ const Dashboard = ({ onLogout }) => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Employee Attendance Dashboard</Typography>
+<Box sx={{ p: { xs: 2, md: 4 }, backgroundColor: '#f9f9fb', minHeight: '100vh' }}>
+      {/* Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5" fontWeight="600" gutterBottom>
+          Employee Attendance Dashboard
+        </Typography>
         <Button
           variant="contained"
           color="error"
           startIcon={<Logout />}
           onClick={onLogout}
+          sx={{ mt: { xs: 2, sm: 0 } }}
         >
           Logout
         </Button>
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 140,
-            }}
-          >
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              Total Employees
-            </Typography>
-            <Typography component="p" variant="h4">
-              {stats?.totalEmployees || 0}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 140,
-            }}
-          >
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              Currently At Office
-            </Typography>
-            <Typography component="p" variant="h4">
-              {stats?.presentToday || 0}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 140,
-            }}
-          >
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              Checked In Today
-            </Typography>
-            <Typography component="p" variant="h4">
-              {stats?.checkedInToday || 0}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 140,
-            }}
-          >
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              Checked Out Today
-            </Typography>
-            <Typography component="p" variant="h4">
-              {stats?.checkedOutToday || 0}
-            </Typography>
-          </Paper>
-        </Grid>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        {[
+          { label: 'Total Employees', value: stats?.totalEmployees || 0 },
+          { label: 'Currently At Office', value: stats?.presentToday || 0 },
+          { label: 'Checked In Today', value: stats?.checkedInToday || 0 },
+          { label: 'Checked Out Today', value: stats?.checkedOutToday || 0 },
+        ].map((item, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <Paper elevation={2} sx={{ p: 2, backgroundColor: '#ffffff', borderRadius: 3 }}>
+              <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                {item.label}
+              </Typography>
+              <Typography variant="h5" color="primary">
+                {item.value}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <FormControl sx={{ minWidth: 200 }}>
+      {/* Filters */}
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
+        <FormControl sx={{ minWidth: 150 }} size="small">
           <InputLabel>Month</InputLabel>
-          <Select
-            value={selectedMonth}
-            label="Month"
-            onChange={handleMonthChange}
-          >
+          <Select value={selectedMonth} label="Month" onChange={handleMonthChange}>
             {months.map((month, index) => (
               <MenuItem key={month} value={index + 1}>
                 {month}
@@ -204,13 +162,9 @@ const Dashboard = ({ onLogout }) => {
           </Select>
         </FormControl>
 
-        <FormControl sx={{ minWidth: 200 }}>
+        <FormControl sx={{ minWidth: 150 }} size="small">
           <InputLabel>Year</InputLabel>
-          <Select
-            value={selectedYear}
-            label="Year"
-            onChange={handleYearChange}
-          >
+          <Select value={selectedYear} label="Year" onChange={handleYearChange}>
             {years.map((year) => (
               <MenuItem key={year} value={year}>
                 {year}
@@ -220,34 +174,38 @@ const Dashboard = ({ onLogout }) => {
         </FormControl>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>Employee Name</TableCell>
-              <TableCell>Total Present</TableCell>
-              <TableCell>Total Absent</TableCell>
-              <TableCell>Total Working Hours</TableCell>
-              <TableCell>Average Check-in Time</TableCell>
-              <TableCell>Average Check-out Time</TableCell>
-              <TableCell>Date of Joining</TableCell>
-              <TableCell>Total Days Since Joining</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {employees
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((employee) => (
-                <EmployeeRow
-                  key={employee._id}
-                  employee={employee}
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                />
-              ))}
-          </TableBody>
-        </Table>
+      {/* Employee Table */}
+      <Paper elevation={1} sx={{ borderRadius: 3, overflow: 'auto' }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: '#f0f0f3' }}>
+              <TableRow>
+                <TableCell />
+                <TableCell><strong>Name</strong></TableCell>
+                <TableCell><strong>Present</strong></TableCell>
+                <TableCell><strong>Absent</strong></TableCell>
+                <TableCell><strong>Hours</strong></TableCell>
+                <TableCell><strong>Avg In</strong></TableCell>
+                <TableCell><strong>Avg Out</strong></TableCell>
+                <TableCell><strong>Joined</strong></TableCell>
+                <TableCell><strong>Days</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {employees
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((employee) => (
+                  <EmployeeRow
+                    key={employee._id}
+                    employee={employee}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                  />
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
@@ -257,7 +215,7 @@ const Dashboard = ({ onLogout }) => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-      </TableContainer>
+      </Paper>
     </Box>
   );
 };
@@ -335,7 +293,7 @@ const EmployeeRow = ({ employee, selectedMonth, selectedYear }) => {
                   ) : (
                     details.map((detail) => (
                       <TableRow key={detail.date}>
-                        <TableCell>{new Date(detail.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(detail.date).toLocaleDateString('en-GB')}</TableCell>
                         <TableCell>{detail.checkInTime || '-'}</TableCell>
                         <TableCell>{detail.checkOutTime || '-'}</TableCell>
                         <TableCell>{detail.workingHours || '-'}</TableCell>

@@ -58,7 +58,7 @@ const EmployeeProfile = () => {
 
   return (
     <Fade in={!loading}>
-      <Box sx={{ p: 3, mb: 8 }}>
+      <Box sx={{ p: 3, mb: 8, width: '100vw' }}>
         <Paper
           elevation={3}
           sx={{
@@ -149,19 +149,6 @@ const EmployeeProfile = () => {
               />
             </ListItem>
           </List>
-
-          <Button
-            variant="contained"
-            startIcon={<EditIcon />}
-            sx={{
-              mt: 3,
-              borderRadius: 2,
-              textTransform: 'none',
-              px: 4
-            }}
-          >
-            Edit Profile
-          </Button>
         </Paper>
       </Box>
     </Fade>

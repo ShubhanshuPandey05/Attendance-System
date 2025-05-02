@@ -14,10 +14,6 @@ const attendanceSchema = new mongoose.Schema({
   checkOutTime: {
     type: Date
   },
-  ipAddress: {
-    type: String,
-    required: true
-  },
   status: {
     type: String,
     enum: ['present', 'checked-out'],
