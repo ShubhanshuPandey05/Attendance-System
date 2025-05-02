@@ -89,25 +89,6 @@ app.post('/api/login', async (req, res) => {
 
 app.post('/api/checkin', authenticateToken, async (req, res) => {
   try {
-    // const forwarded = req.headers['x-forwarded-for'];
-    // let clientIp = forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress;
-    // console.log(clientIp);
-    // clientIp = clientIp.replace('::ffff:', '').trim();
-    // console.log(clientIp);
-
-    // Check if IP is in office range
-    // if (!ipRangeCheck(clientIp, process.env.OFFICE_IP_RANGE)) {
-    //   return res.status(403).json({ error: 'Not connected to office network' });
-    // }
-    // if (
-    //   clientIp !== process.env.OFFICE_IP_RANGE &&
-    //   clientIp !== '127.0.0.1' &&
-    //   clientIp !== '::1'
-    // ) {
-    //   return res.status(403).json({ error: 'Not connected to office network' });
-    // }
-
-
     const { latitude, longitude } = req.body;
 
     const officeLocation = {
@@ -120,17 +101,12 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
       longitude: parseFloat(longitude),
     };
 
-    // console.log("office:", officeLocation, "user:", userLocation);
-
-
-    const distance = getDistance(userLocation, officeLocation); // distance in meters
-    // console.log(distance)
+    const distance = getDistance(userLocation, officeLocation);
 
     if (distance > 100) {
       return res.status(403).json({ error: 'Not within office' });
     }
 
-    // Check if already checked in today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const existingCheckin = await Attendance.findOne({
@@ -142,7 +118,6 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Already checked in today' });
     }
 
-    // Create attendance record
     const attendance = new Attendance({
       user: req.user.id,
       checkInTime: new Date(),
@@ -153,8 +128,9 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
     const subscriptions = await Subscription.find();
     const user = await User.findById(req.user.id);
     const notificationPayload = {
-      title: 'New Attendance Check-in',
-      body: `${user.name} checked in at ${attendance.checkInTime.toLocaleTimeString()}`
+      title: 'New Check-in',
+      body: `${user.name} checked in at ${attendance.checkInTime.toLocaleTimeString()}`,
+      icon: '/image.png'
     };
 
     const notificationPromises = subscriptions.map(subscription => {
@@ -192,15 +168,12 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
       longitude: parseFloat(longitude),
     };
 
-    // console.log("office:", officeLocation, "user:", userLocation);
-
-
-    const distance = getDistance(userLocation, officeLocation); // distance in meters
-    // console.log(distance)
+    const distance = getDistance(userLocation, officeLocation);
 
     if (distance > 100) {
       return res.status(403).json({ error: 'Not within office' });
     }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -219,6 +192,29 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
     attendance.checkOutTime = new Date();
     attendance.status = 'checked-out';
     await attendance.save();
+
+    // Send push notification to admin
+    const subscriptions = await Subscription.find();
+    const user = await User.findById(req.user.id);
+    const notificationPayload = {
+      title: 'New Check-out',
+      body: `${user.name} checked out at ${attendance.checkOutTime.toLocaleTimeString()}`,
+      icon: '/image.png'
+    };
+
+    const notificationPromises = subscriptions.map(subscription => {
+      return webpush.sendNotification(
+        subscription,
+        JSON.stringify(notificationPayload)
+      ).catch(err => {
+        console.error('Error sending notification:', err);
+        if (err.statusCode === 410) {
+          return Subscription.findByIdAndDelete(subscription._id);
+        }
+      });
+    });
+
+    await Promise.all(notificationPromises);
 
     res.json({ message: 'Check-out successful' });
   } catch (error) {
@@ -504,7 +500,42 @@ app.get('/api/employee/report', authenticateToken, async (req, res) => {
   }
 });
 
-// Serve Frontend
+// Subscribe to notifications
+app.post('/api/subscribe', authenticateToken, async (req, res) => {
+  try {
+    const { subscription } = req.body;
+    
+    // Check if subscription already exists
+    const existingSubscription = await Subscription.findOne({ endpoint: subscription.endpoint });
+    if (existingSubscription) {
+      return res.status(200).json({ message: 'Already subscribed' });
+    }
+
+    // Save new subscription
+    const newSubscription = new Subscription(subscription);
+    await newSubscription.save();
+
+    res.status(201).json({ message: 'Subscription saved successfully' });
+  } catch (error) {
+    console.error('Subscription error:', error);
+    res.status(500).json({ error: 'Error saving subscription' });
+  }
+});
+
+// Unsubscribe from notifications
+app.post('/api/unsubscribe', authenticateToken, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    await Subscription.findOneAndDelete({ endpoint });
+    res.json({ message: 'Unsubscribed successfully' });
+  } catch (error) {
+    console.error('Unsubscribe error:', error);
+    res.status(500).json({ error: 'Error unsubscribing' });
+  }
+});
+
+// Serve static files
+app.use(express.static('frontend/public'));
 app.use(express.static(path.join(__dirname, 'frontend/dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));

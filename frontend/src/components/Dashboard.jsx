@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, Logout } from '@mui/icons-material';
 import axios from 'axios';
+import NotificationSettings from './NotificationSettings';
 
 const Dashboard = ({ onLogout }) => {
   const [employees, setEmployees] = useState([]);
@@ -41,7 +42,7 @@ const Dashboard = ({ onLogout }) => {
   const fetchDashboardData = async () => {
     try {
       const response = await axios.get('/api/dashboard', {
-      // const response = await axios.get('http://localhost:3000/api/dashboard', {
+        // const response = await axios.get('http://localhost:3000/api/dashboard', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -101,7 +102,7 @@ const Dashboard = ({ onLogout }) => {
       elevation={0}
       sx={{
         p: 2.5,
-        height: {xs:'47%', sm:'100%'},
+        height: { xs: '47%', sm: '100%' },
         width: { xs: '47%', sm: '24%' },
         backgroundColor: bgColor,
         borderRadius: 2,
@@ -116,7 +117,7 @@ const Dashboard = ({ onLogout }) => {
       <Typography
         variant="subtitle1"
         sx={{
-          fontSize: {xs:'1rem', sm:'1.5rem'},
+          fontSize: { xs: '1rem', sm: '1.5rem' },
           fontWeight: 600,
           color: 'rgba(0, 0, 0, 0.7)',
           mb: 1.5
@@ -183,26 +184,35 @@ const Dashboard = ({ onLogout }) => {
           >
             Employee Attendance Dashboard
           </Typography>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#ffd6d6',
-              color: '#d32f2f',
-              '&:hover': {
-                backgroundColor: '#ffbdbd',
-              },
-              textTransform: 'none',
-              boxShadow: 'none',
-              px: 2.5,
-              py: 0.5,
-              fontSize: {xs:'0.8rem', sm:'1.2rem'},
-              fontWeight: 400,
-              minWidth: { xs: 'auto', sm: '150px' }
-            }}
-            onClick={onLogout}
-          >
-            LogOut
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: '#ffd6d6',
+                color: '#d32f2f',
+                '&:hover': {
+                  backgroundColor: '#ffbdbd',
+                },
+                textTransform: 'none',
+                boxShadow: 'none',
+                px: 2.5,
+                py: 0.5,
+                fontSize: { xs: '0.8rem', sm: '1.2rem' },
+                fontWeight: 400,
+                minWidth: { xs: 'auto', sm: '150px' }
+              }}
+              onClick={onLogout}
+            >
+              LogOut
+            </Button>
+          </Box>
+        </Box>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          mb: { xs: 2, sm: 3 }
+        }}>
+          <NotificationSettings />
         </Box>
 
         {/* Stats Cards */}
