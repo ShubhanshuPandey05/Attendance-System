@@ -7,6 +7,7 @@ const webpush = require('web-push');
 const path = require('path');
 // const { google } = require('googleapis');
 const { getDistance } = require('geolib');
+const { DateTime } = require("luxon");
 // const ipRangeCheck = require('ip-range-check');
 
 const app = express();
@@ -45,6 +46,12 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+const indiaMidnight = DateTime.now()
+  .setZone("Asia/Kolkata")
+  .startOf("day");
+
+
 // Routes
 
 app.get('/api/test', (req, res) => {
@@ -54,7 +61,7 @@ app.get('/api/test', (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const user = new User({ name, email, password, role, dateOfJoining: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }) });
+    const user = new User({ name, email, password, role, dateOfJoining: new Date(indiaMidnight.toISO())});
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -105,7 +112,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Not within office' });
     }
 
-    const today = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const today = new Date(indiaMidnight.toISO());
     today.setHours(0, 0, 0, 0);
     const existingCheckin = await Attendance.findOne({
       user: req.user.id,
@@ -118,7 +125,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
 
     const attendance = new Attendance({
       user: req.user.id,
-      checkInTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+      checkInTime: new Date(indiaMidnight.toISO()),
     });
     await attendance.save();
 
@@ -172,7 +179,7 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Not within office' });
     }
 
-    const today = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const today = new Date(indiaMidnight.toISO());
     today.setHours(0, 0, 0, 0);
 
     const attendance = await Attendance.findOne({
@@ -187,7 +194,7 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Already checked out today' });
     }
 
-    attendance.checkOutTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    attendance.checkOutTime = new Date(indiaMidnight.toISO());
     attendance.status = 'checked-out';
     await attendance.save();
 
@@ -226,7 +233,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const today = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const today = new Date(indiaMidnight.toISO());
     today.setHours(0, 0, 0, 0);
 
     const stats = {
@@ -256,7 +263,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 
 app.post('/api/attendance/today', authenticateToken, async (req, res) => {
   try {
-    const today = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const today = new Date(indiaMidnight.toISO());
     today.setHours(0, 0, 0, 0);
     // console.log(user, today);
     const attendance = await Attendance.find({
@@ -272,6 +279,7 @@ app.post('/api/attendance/today', authenticateToken, async (req, res) => {
     }
     return res.json({ status: null });
   } catch (error) {
+    console.error('Error fetching attendance data:', error);
     res.status(500).json({ error: 'Error fetching attendance data' });
   }
 })
@@ -290,7 +298,7 @@ app.get('/api/dashboard/employee-summary', authenticateToken, async (req, res) =
       });
 
       function getWorkingDaysUntilToday(year, month) {
-        const today = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })  ;
+        const today = new Date(indiaMidnight.toISO());
         const isCurrentMonth = parseInt(year) === today.getFullYear() && parseInt(month) === (today.getMonth() + 1);
         // console.log(year,today.getFullYear(),month,today.getMonth()+1)
         const daysInMonth = new Date(year, month, 0).getDate(); // Total days in month
@@ -425,7 +433,7 @@ app.get('/api/employee/report', authenticateToken, async (req, res) => {
     }).sort({ checkInTime: 1 });
 
     function getWorkingDaysUntilToday(year, month) {
-      const today = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }) ;
+      const today = new Date(indiaMidnight.toISO());
       const isCurrentMonth = parseInt(year) === today.getFullYear() && parseInt(month) === (today.getMonth() + 1);
       // console.log(year,today.getFullYear(),month,today.getMonth()+1)
       const daysInMonth = new Date(year, month, 0).getDate(); // Total days in month
