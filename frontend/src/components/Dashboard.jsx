@@ -40,7 +40,8 @@ const Dashboard = ({ onLogout }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/dashboard', {
+      const response = await axios.get('/api/dashboard', {
+      // const response = await axios.get('http://localhost:3000/api/dashboard', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -53,7 +54,8 @@ const Dashboard = ({ onLogout }) => {
 
   const fetchEmployeeData = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/dashboard/employee-summary`, {
+      const response = await axios.get(`/api/dashboard/employee-summary`, {
+      // const response = await axios.get(`http://localhost:3000/api/dashboard/employee-summary`, {
         params: {
           month: selectedMonth,
           year: selectedYear
@@ -94,6 +96,47 @@ const Dashboard = ({ onLogout }) => {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
+  const StatCard = ({ title, value, bgColor }) => (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2.5,
+        height: {xs:'47%', sm:'100%'},
+        width: { xs: '47%', sm: '24%' },
+        backgroundColor: bgColor,
+        borderRadius: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        // minHeight: { xs: '100px', sm: '120px' }
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        sx={{
+          fontSize: {xs:'1rem', sm:'1.5rem'},
+          fontWeight: 600,
+          color: 'rgba(0, 0, 0, 0.7)',
+          mb: 1.5
+        }}
+      >
+        {title}
+      </Typography>
+      <Typography
+        variant="h4"
+        sx={{
+          fontWeight: 500,
+          color: 'rgba(0, 0, 0, 0.8)',
+          fontSize: { xs: '1.5rem', sm: '2rem' }
+        }}
+      >
+        {value}
+      </Typography>
+    </Paper>
+  );
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -103,119 +146,270 @@ const Dashboard = ({ onLogout }) => {
   }
 
   return (
-<Box sx={{ p: { xs: 2, md: 4 }, backgroundColor: '#f9f9fb', minHeight: '100vh' }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" fontWeight="600" gutterBottom>
-          Employee Attendance Dashboard
-        </Typography>
-        <Button
-          variant="contained"
-          color="error"
-          startIcon={<Logout />}
-          onClick={onLogout}
-          sx={{ mt: { xs: 2, sm: 0 } }}
+    <Box
+      sx={{
+        backgroundColor: 'white',
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        justifyContent: 'center',
+        overflowX: 'hidden'
+      }}
+    >
+      <Box sx={{
+        width: '100vw',
+        height: '100vh',
+        p: { xs: 2, sm: 3 },
+        boxSizing: 'border-box'
+      }}>
+        {/* Header */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: { xs: 2, sm: 3 },
+            width: '100%',
+            gap: { xs: 2, sm: 0 }
+          }}
         >
-          Logout
-        </Button>
-      </Box>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '1.2rem', sm: '2rem' },
+              color: 'rgba(0, 0, 0, 0.87)'
+            }}
+          >
+            Employee Attendance Dashboard
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#ffd6d6',
+              color: '#d32f2f',
+              '&:hover': {
+                backgroundColor: '#ffbdbd',
+              },
+              textTransform: 'none',
+              boxShadow: 'none',
+              px: 2.5,
+              py: 0.5,
+              fontSize: {xs:'0.8rem', sm:'1.2rem'},
+              fontWeight: 400,
+              minWidth: { xs: 'auto', sm: '150px' }
+            }}
+            onClick={onLogout}
+          >
+            LogOut
+          </Button>
+        </Box>
 
-      {/* Stats Cards */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        {[
-          { label: 'Total Employees', value: stats?.totalEmployees || 0 },
-          { label: 'Currently At Office', value: stats?.presentToday || 0 },
-          { label: 'Checked In Today', value: stats?.checkedInToday || 0 },
-          { label: 'Checked Out Today', value: stats?.checkedOutToday || 0 },
-        ].map((item, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Paper elevation={2} sx={{ p: 2, backgroundColor: '#ffffff', borderRadius: 3 }}>
-              <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-                {item.label}
-              </Typography>
-              <Typography variant="h5" color="primary">
-                {item.value}
-              </Typography>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+        {/* Stats Cards */}
+        <Box
+          sx={{
+            display: 'flex',
+            height: '35%',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap',
+            // border: '1px solid red',
+            overflow: 'auto',
+            mb: { xs: 4, sm: 4 }
+          }}
+        >
+          <StatCard
+            title="Total Employees"
+            value={stats?.totalEmployees || 0}
+            bgColor="rgba(227, 242, 253, 0.95)"
+          />
+          <StatCard
+            title="Currently At Office"
+            value={stats?.presentToday || 0}
+            bgColor="rgba(232, 245, 233, 0.95)"
+          />
+          <StatCard
+            title="Checked In Today"
+            value={stats?.checkedInToday || 0}
+            bgColor="rgba(243, 229, 245, 0.95)"
+          />
+          <StatCard
+            title="Checked Out Today"
+            value={stats?.checkedOutToday || 0}
+            bgColor="rgba(255, 243, 224, 0.95)"
+          />
+        </Box>
 
-      {/* Filters */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
-        <FormControl sx={{ minWidth: 150 }} size="small">
-          <InputLabel>Month</InputLabel>
-          <Select value={selectedMonth} label="Month" onChange={handleMonthChange}>
-            {months.map((month, index) => (
-              <MenuItem key={month} value={index + 1}>
-                {month}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* Filters */}
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'row', sm: 'row' },
+          gap: 2,
+          mb: { xs: 2, sm: 3 }
+        }}>
+          <FormControl
+            sx={{
+              width: { xs: '48%', sm: '180px' }
+            }}
+            size="small"
+          >
+            <InputLabel sx={{
+              backgroundColor: '#f5f5f5',
+              px: 1,
+              '&.Mui-focused': {
+                backgroundColor: '#f5f5f5'
+              }
+            }}>
+              Month
+            </InputLabel>
+            <Select
+              value={selectedMonth}
+              label="Month"
+              onChange={handleMonthChange}
+              sx={{
+                backgroundColor: '#f5f5f5',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.15)',
+                }
+              }}
+            >
+              {months.map((month, index) => (
+                <MenuItem key={month} value={index + 1}>
+                  {month}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <FormControl sx={{ minWidth: 150 }} size="small">
-          <InputLabel>Year</InputLabel>
-          <Select value={selectedYear} label="Year" onChange={handleYearChange}>
-            {years.map((year) => (
-              <MenuItem key={year} value={year}>
-                {year}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
+          <FormControl
+            sx={{
+              width: { xs: '48%', sm: '180px' }
+            }}
+            size="small"
+          >
+            <InputLabel sx={{
+              backgroundColor: '#f5f5f5',
+              px: 1,
+              '&.Mui-focused': {
+                backgroundColor: '#f5f5f5'
+              }
+            }}>
+              Year
+            </InputLabel>
+            <Select
+              value={selectedYear}
+              label="Year"
+              onChange={handleYearChange}
+              sx={{
+                backgroundColor: '#f5f5f5',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.15)',
+                }
+              }}
+            >
+              {years.map((year) => (
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
-      {/* Employee Table */}
-      <Paper elevation={1} sx={{ borderRadius: 3, overflow: 'auto' }}>
-        <TableContainer>
-          <Table size="small">
-            <TableHead sx={{ backgroundColor: '#f0f0f3' }}>
-              <TableRow>
-                <TableCell />
-                <TableCell><strong>Name</strong></TableCell>
-                <TableCell><strong>Present</strong></TableCell>
-                <TableCell><strong>Absent</strong></TableCell>
-                <TableCell><strong>Hours</strong></TableCell>
-                <TableCell><strong>Avg In</strong></TableCell>
-                <TableCell><strong>Avg Out</strong></TableCell>
-                <TableCell><strong>Joined</strong></TableCell>
-                <TableCell><strong>Days</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {employees
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((employee) => (
-                  <EmployeeRow
-                    key={employee._id}
-                    employee={employee}
-                    selectedMonth={selectedMonth}
-                    selectedYear={selectedYear}
+        {/* Employee Table */}
+        <Box
+          sx={{
+            borderRadius: 1,
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            overflow: 'auto',
+            backgroundColor: 'white',
+            // height: '65%'
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              px: 2,
+              py: 1.5,
+              fontWeight: 500,
+              fontSize: '1rem',
+              borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+              backgroundColor: 'white'
+            }}
+          >
+            Employee Table
+          </Typography>
+          <TableContainer>
+            <Table size="medium">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                  <TableCell
+                    padding="checkbox"
+                    sx={{
+                      width: '48px',
+                      borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                    }}
                   />
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={employees.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Name</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Present</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Absent</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Hours</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Avg In</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Avg Out</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Joined</TableCell>
+                  <TableCell sx={{
+                    fontWeight: 500,
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                  }}>Days</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {employees
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((employee) => (
+                    <EmployeeRow
+                      key={employee._id}
+                      employee={employee}
+                      selectedMonth={selectedMonth}
+                      selectedYear={selectedYear}
+                    />
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={employees.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 };
@@ -230,7 +424,8 @@ const EmployeeRow = ({ employee, selectedMonth, selectedYear }) => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:3000/dashboard/employee-details/${employee._id}`,
+          // `http://localhost:3000/api/dashboard/employee-details/${employee._id}`,
+          `/api/dashboard/employee-details/${employee._id}`,
           {
             params: { month: selectedMonth, year: selectedYear },
             headers: {

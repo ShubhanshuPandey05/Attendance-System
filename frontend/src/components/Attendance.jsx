@@ -23,7 +23,8 @@ const Attendance = ({ user }) => {
   const checkTodayStatus = async () => {
     try {
       const response = await axios.post(
-        'http://localhost:3000/attendance/today',
+        // 'http://localhost:3000/attendance/today',
+        '/api/attendance/today',
         { user },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -52,7 +53,8 @@ const Attendance = ({ user }) => {
         try {
           setLoading(true);
           await axios.post(
-            'http://localhost:3000/checkin',
+            // 'http://localhost:3000/checkin',
+            '/api/checkin',
             { latitude, longitude },
             {
               headers: {
@@ -92,7 +94,8 @@ const Attendance = ({ user }) => {
         const { latitude, longitude } = position.coords;
         try {
           setLoading(true);
-          await axios.post('http://localhost:3000/checkout', { latitude, longitude }, {
+          // await axios.post('http://localhost:3000/checkout', { latitude, longitude }, {
+          await axios.post('/api/checkout', { latitude, longitude }, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setStatus('checked-out');

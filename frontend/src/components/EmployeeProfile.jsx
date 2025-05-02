@@ -33,7 +33,8 @@ const EmployeeProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/employee/profile', {
+      // const response = await axios.get('http://localhost:3000/employee/profile', {
+      const response = await axios.get('/api/employee/profile', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }

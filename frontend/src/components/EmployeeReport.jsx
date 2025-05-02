@@ -56,7 +56,8 @@ const EmployeeReport = () => {
   const fetchReportData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/employee/report', {
+      // const response = await axios.get('http://localhost:3000/employee/report', {
+      const response = await axios.get('/api/employee/report', {
         params: {
           month: selectedMonth,
           year: selectedYear
@@ -77,6 +78,7 @@ const EmployeeReport = () => {
     <Card
       elevation={3}
       sx={{
+        width: {xs: '100%', sm: 'auto'},
         height: '100%',
         borderRadius: 2,
         transition: 'transform 0.2s',
@@ -160,40 +162,38 @@ const EmployeeReport = () => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Box sx={{ mb: 4 ,
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          width: {xs: '100%', sm: '100%'}
+        }}>
             <StatCard
               icon={<Timeline color="primary" />}
               title="Present Days"
               value={reportData?.totalPresent || 0}
               color="primary"
             />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
             <StatCard
               icon={<AccessTime color="error" />}
               title="Absent Days"
               value={reportData?.totalAbsent || 0}
               color="error"
             />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
             <StatCard
               icon={<TrendingUp color="success" />}
               title="Working Hours"
               value={`${reportData?.totalWorkingHours || 0}h`}
               color="success"
             />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
             <StatCard
               icon={<CalendarToday color="info" />}
               title="On Time %"
               value={`${reportData?.onTimePercentage || 0}%`}
               color="info"
             />
-          </Grid>
-        </Grid>
+        </Box>
 
         <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
           <Typography variant="h6" gutterBottom>

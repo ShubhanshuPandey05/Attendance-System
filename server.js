@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const webpush = require('web-push');
+const path = require('path');
 // const { google } = require('googleapis');
 const { getDistance } = require('geolib');
 // const ipRangeCheck = require('ip-range-check');
@@ -45,8 +46,14 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+
 // Routes
-app.post('/register', async (req, res) => {
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Hello World' });
+});
+
+app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
     const user = new User({ name, email, password, role });
@@ -57,7 +64,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -80,7 +87,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/checkin', authenticateToken, async (req, res) => {
+app.post('/api/checkin', authenticateToken, async (req, res) => {
   try {
     // const forwarded = req.headers['x-forwarded-for'];
     // let clientIp = forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress;
@@ -171,7 +178,7 @@ app.post('/checkin', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/checkout', authenticateToken, async (req, res) => {
+app.post('/api/checkout', authenticateToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.body;
 
@@ -219,7 +226,7 @@ app.post('/checkout', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/dashboard', authenticateToken, async (req, res) => {
+app.get('/api/dashboard', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied' });
@@ -253,7 +260,7 @@ app.get('/dashboard', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/attendance/today', authenticateToken, async (req, res) => {
+app.post('/api/attendance/today', authenticateToken, async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -275,7 +282,7 @@ app.post('/attendance/today', authenticateToken, async (req, res) => {
   }
 })
 
-app.get('/dashboard/employee-summary', authenticateToken, async (req, res) => {
+app.get('/api/dashboard/employee-summary', authenticateToken, async (req, res) => {
   try {
     const { month, year } = req.query;
     const startDate = new Date(year, month - 1, 1);
@@ -290,12 +297,12 @@ app.get('/dashboard/employee-summary', authenticateToken, async (req, res) => {
 
       function getWorkingDaysUntilToday(year, month) {
         const today = new Date();
-        const isCurrentMonth = parseInt(year) === today.getFullYear() && parseInt(month) === (today.getMonth()+1);
+        const isCurrentMonth = parseInt(year) === today.getFullYear() && parseInt(month) === (today.getMonth() + 1);
         // console.log(year,today.getFullYear(),month,today.getMonth()+1)
         const daysInMonth = new Date(year, month, 0).getDate(); // Total days in month
 
         // console.log(isCurrentMonth);
-        
+
 
         const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
         // console.log(today.getDate())
@@ -362,7 +369,7 @@ app.get('/dashboard/employee-summary', authenticateToken, async (req, res) => {
 });
 
 // Add new route for individual employee details
-app.get('/dashboard/employee-details/:id', authenticateToken, async (req, res) => {
+app.get('/api/dashboard/employee-details/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { month, year } = req.query;
@@ -398,7 +405,7 @@ app.get('/dashboard/employee-details/:id', authenticateToken, async (req, res) =
 });
 
 // Employee Profile Route
-app.get('/employee/profile', authenticateToken, async (req, res) => {
+app.get('/api/employee/profile', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -412,7 +419,7 @@ app.get('/employee/profile', authenticateToken, async (req, res) => {
 });
 
 // Employee Report Route
-app.get('/employee/report', authenticateToken, async (req, res) => {
+app.get('/api/employee/report', authenticateToken, async (req, res) => {
   try {
     const { month, year } = req.query;
     const startDate = new Date(year, month - 1, 1);
@@ -423,10 +430,34 @@ app.get('/employee/report', authenticateToken, async (req, res) => {
       checkInTime: { $gte: startDate, $lte: endDate }
     }).sort({ checkInTime: 1 });
 
-    // Calculate statistics
+    function getWorkingDaysUntilToday(year, month) {
+      const today = new Date();
+      const isCurrentMonth = parseInt(year) === today.getFullYear() && parseInt(month) === (today.getMonth() + 1);
+      // console.log(year,today.getFullYear(),month,today.getMonth()+1)
+      const daysInMonth = new Date(year, month, 0).getDate(); // Total days in month
+
+      // console.log(isCurrentMonth);
+
+
+      const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
+      // console.log(today.getDate())
+      // console.log(lastDay)
+
+      let workingDays = 0;
+      for (let day = 1; day <= lastDay; day++) {
+        const date = new Date(year, month - 1, day); // JS months are 0-based
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
+          workingDays++;
+        }
+      }
+
+      return workingDays;
+    }
+
     const totalPresent = attendances.length;
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const totalAbsent = daysInMonth - totalPresent;
+    const workingDaysUntilToday = getWorkingDaysUntilToday(year, month);
+    const totalAbsent = workingDaysUntilToday - totalPresent;
 
     const totalWorkingHours = attendances.reduce((total, attendance) => {
       if (attendance.checkInTime && attendance.checkOutTime) {
@@ -471,6 +502,12 @@ app.get('/employee/report', authenticateToken, async (req, res) => {
     console.error('Error fetching report:', error);
     res.status(500).json({ error: 'Error fetching report' });
   }
+});
+
+// Serve Frontend
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
