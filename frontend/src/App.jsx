@@ -7,7 +7,7 @@ import EmployeeProfile from './components/EmployeeProfile';
 import EmployeeReport from './components/EmployeeReport';
 import BottomNav from './components/BottomNavigation';
 import Attendance from './components/Attendance';
-
+import Signup from './components/Signup';
 const theme = createTheme({
   palette: {
     primary: {
@@ -68,6 +68,16 @@ const App = () => {
             element={
               !isAuthenticated ? (
                 <Login setUser={setUser} setIsAuthenticated={setIsAuthenticated} setUserRole={setUserRole}/>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              !isAuthenticated ? (
+                <Signup />
               ) : (
                 <Navigate to="/" replace />
               )
