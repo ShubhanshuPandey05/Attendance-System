@@ -49,8 +49,16 @@ const authenticateToken = (req, res, next) => {
 
 const indiaMidnight = DateTime.now()
   .setZone("Asia/Kolkata")
-  .startOf("day");
 
+
+// const today = new Date(indiaMidnight.toISO());
+// console.log(today);
+
+// console.log(new Date());
+
+// const indiaTime = DateTime.now().setZone("Asia/Kolkata").toFormat("HH:mm:ss");
+
+// console.log(indiaTime);
 
 // Routes
 
@@ -61,7 +69,7 @@ app.get('/api/test', (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const user = new User({ name, email, password, role, dateOfJoining: new Date(indiaMidnight.toISO())});
+    const user = new User({ name, email, password, role, dateOfJoining: new Date(indiaMidnight.toISO()) });
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -234,6 +242,8 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
     }
 
     const today = new Date(indiaMidnight.toISO());
+    // console.log(today);
+
     today.setHours(0, 0, 0, 0);
 
     const stats = {
@@ -510,7 +520,7 @@ app.get('/api/employee/report', authenticateToken, async (req, res) => {
 app.post('/api/subscribe', authenticateToken, async (req, res) => {
   try {
     const { subscription } = req.body;
-    
+
     // Check if subscription already exists
     const existingSubscription = await Subscription.findOne({ endpoint: subscription.endpoint });
     if (existingSubscription) {
