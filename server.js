@@ -369,9 +369,27 @@ app.get('/api/dashboard/employee-summary', authenticateToken, async (req, res) =
         totalPresent,
         totalAbsent,
         totalWorkingHours: workingHours.toFixed(2),
-        avgCheckInTime: avgCheckInTime ? avgCheckInTime.toLocaleTimeString() : '-',
-        avgCheckOutTime: avgCheckOutTime ? avgCheckOutTime.toLocaleTimeString() : '-',
-        dateOfJoining: employee.dateOfJoining || new Date(),
+        avgCheckInTime: avgCheckInTime ? avgCheckInTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata'
+        }) : '-',
+        avgCheckOutTime: avgCheckOutTime ? avgCheckOutTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata'
+        }) : '-',
+        dateOfJoining: employee.dateOfJoining || new Date('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata'
+        }),
         totalDaysSinceJoining: Math.floor((new Date() - (employee.dateOfJoining || new Date())) / (1000 * 60 * 60 * 24))
       };
     }));
