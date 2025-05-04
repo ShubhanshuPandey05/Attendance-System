@@ -70,7 +70,7 @@ app.get('/api/test', (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const user = new User({ name, email, password, role, dateOfJoining: new Date(indiaMidnight.toISO())});
+    const user = new User({ name, email, password, role, dateOfJoining: new Date(indiaMidnight.toISO()) });
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -124,7 +124,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
     const today = new Date(indiaMidnight.toISO());
 
     console.log(today);
-    
+
     today.setHours(0, 0, 0, 0);
     console.log(today);
     const existingCheckin = await Attendance.findOne({
@@ -404,8 +404,23 @@ app.get('/api/dashboard/employee-details/:id', authenticateToken, async (req, re
 
     const details = attendances.map(attendance => ({
       date: attendance.checkInTime,
-      checkInTime: attendance.checkInTime ? attendance.checkInTime.toLocaleTimeString() : '-',
-      checkOutTime: attendance.checkOutTime ? attendance.checkOutTime.toLocaleTimeString() : '-',
+      checkInTime: attendance.checkInTime
+        ? attendance.checkInTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata'
+        })
+        : '-',
+
+      checkOutTime: attendance.checkOutTime ? attendance.checkOutTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata'
+        }) : '-',
       workingHours: attendance.checkInTime && attendance.checkOutTime
         ? ((attendance.checkOutTime - attendance.checkInTime) / (1000 * 60 * 60)).toFixed(2)
         : '-',
@@ -523,7 +538,7 @@ app.get('/api/employee/report', authenticateToken, async (req, res) => {
 app.post('/api/subscribe', authenticateToken, async (req, res) => {
   try {
     const { subscription } = req.body;
-    
+
     // Check if subscription already exists
     const existingSubscription = await Subscription.findOne({ endpoint: subscription.endpoint });
     if (existingSubscription) {
