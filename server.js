@@ -52,7 +52,7 @@ const indiaMidnight = DateTime.now()
 
 console.log(indiaMidnight)
 
-console.log(new Date(indiaMidnight))
+console.log(new Date(indiaMidnight.toISO()))
 
 const today = new Date(indiaMidnight.toISO());
 today.setHours(0, 0, 0, 0);
