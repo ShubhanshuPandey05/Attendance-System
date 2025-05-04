@@ -122,7 +122,11 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
     }
 
     const today = new Date(indiaMidnight.toISO());
+
+    console.log(today);
+    
     today.setHours(0, 0, 0, 0);
+    console.log(today);
     const existingCheckin = await Attendance.findOne({
       user: req.user.id,
       checkInTime: { $gte: today }
