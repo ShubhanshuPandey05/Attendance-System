@@ -50,6 +50,16 @@ const authenticateToken = (req, res, next) => {
 const indiaMidnight = DateTime.now()
   .setZone("Asia/Kolkata")
 
+console.log(indiaMidnight)
+
+console.log(new Date(indiaMidnight))
+
+const today = new Date(indiaMidnight.toISO());
+today.setHours(0, 0, 0, 0);
+
+console.log(today);
+
+
 
 // Routes
 
