@@ -55,9 +55,9 @@ console.log(indiaMidnight)
 console.log(new Date(indiaMidnight.toISO()))
 
 const today = new Date(indiaMidnight.toISO());
-today.setHours(0, 0, 0, 0);
+// today.setHours(0, 0, 0, 0);
 
-console.log(today);
+// console.log(today);
 
 
 
@@ -92,7 +92,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '365d' }
     );
 
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
@@ -125,7 +125,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
 
     console.log(today);
 
-    today.setHours(0, 0, 0, 0);
+    // today.setHours(0, 0, 0, 0);
     console.log(today);
     const existingCheckin = await Attendance.findOne({
       user: req.user.id,
@@ -193,7 +193,7 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
     }
 
     const today = new Date(indiaMidnight.toISO());
-    today.setHours(0, 0, 0, 0);
+    // today.setHours(0, 0, 0, 0);
 
     const attendance = await Attendance.findOne({
       user: req.user.id,
