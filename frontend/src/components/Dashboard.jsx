@@ -24,6 +24,7 @@ import {
 import { KeyboardArrowDown, KeyboardArrowUp, Logout } from '@mui/icons-material';
 import axios from 'axios';
 import NotificationSettings from './NotificationSettings';
+import { formatDateIST } from '../utils/timeUtils';
 
 const Dashboard = ({ onLogout }) => {
   const [employees, setEmployees] = useState([]);
@@ -470,7 +471,7 @@ const EmployeeRow = ({ employee, selectedMonth, selectedYear }) => {
         <TableCell>{employee.totalWorkingHours}</TableCell>
         <TableCell>{employee.avgCheckInTime}</TableCell>
         <TableCell>{employee.avgCheckOutTime}</TableCell>
-        <TableCell>{new Date(employee.dateOfJoining).toLocaleDateString()}</TableCell>
+        <TableCell>{formatDateIST(employee.dateOfJoining)}</TableCell>
         <TableCell>{employee.totalDaysSinceJoining}</TableCell>
       </TableRow>
       <TableRow>
@@ -498,7 +499,7 @@ const EmployeeRow = ({ employee, selectedMonth, selectedYear }) => {
                   ) : (
                     details.map((detail) => (
                       <TableRow key={detail.date}>
-                        <TableCell>{new Date(detail.date).toLocaleDateString('en-GB')}</TableCell>
+                        <TableCell>{formatDateIST(detail.date)}</TableCell>
                         <TableCell>{detail.checkInTime || '-'}</TableCell>
                         <TableCell>{detail.checkOutTime || '-'}</TableCell>
                         <TableCell>{detail.workingHours || '-'}</TableCell>

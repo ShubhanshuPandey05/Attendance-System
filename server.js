@@ -9,6 +9,7 @@ const path = require('path');
 const { getDistance } = require('geolib');
 const { DateTime } = require("luxon");
 // const ipRangeCheck = require('ip-range-check');
+const { getCurrentIST, getStartOfDayIST, toIST, formatTimeIST, formatDateIST } = require('./utils/timeUtils');
 
 const app = express();
 
@@ -121,12 +122,8 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Not within office' });
     }
 
-    const today = new Date(indiaMidnight.toISO());
+    const today = getStartOfDayIST().toJSDate();
 
-    console.log(today);
-
-    // today.setHours(0, 0, 0, 0);
-    console.log(today);
     const existingCheckin = await Attendance.findOne({
       user: req.user.id,
       checkInTime: { $gte: today }
@@ -138,7 +135,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
 
     const attendance = new Attendance({
       user: req.user.id,
-      checkInTime: new Date(indiaMidnight.toISO()),
+      checkInTime: getCurrentIST().toJSDate(),
     });
     await attendance.save();
 
@@ -147,7 +144,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
     const user = await User.findById(req.user.id);
     const notificationPayload = {
       title: 'New Check-in',
-      body: `${user.name} checked in at ${attendance.checkInTime.toLocaleTimeString()}`,
+      body: `${user.name} checked in at ${formatTimeIST(attendance.checkInTime)}`,
       icon: '/image.png'
     };
 
@@ -192,8 +189,7 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Not within office' });
     }
 
-    const today = new Date(indiaMidnight.toISO());
-    // today.setHours(0, 0, 0, 0);
+    const today = getStartOfDayIST().toJSDate();
 
     const attendance = await Attendance.findOne({
       user: req.user.id,
@@ -207,7 +203,7 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Already checked out today' });
     }
 
-    attendance.checkOutTime = new Date(indiaMidnight.toISO());
+    attendance.checkOutTime = getCurrentIST().toJSDate();
     attendance.status = 'checked-out';
     await attendance.save();
 
@@ -216,7 +212,7 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
     const user = await User.findById(req.user.id);
     const notificationPayload = {
       title: 'New Check-out',
-      body: `${user.name} checked out at ${attendance.checkOutTime.toLocaleTimeString()}`,
+      body: `${user.name} checked out at ${formatTimeIST(attendance.checkOutTime)}`,
       icon: '/image.png'
     };
 
@@ -246,8 +242,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const today = new Date(indiaMidnight.toISO());
-    today.setHours(0, 0, 0, 0);
+    const today = getStartOfDayIST().toJSDate();
 
     const stats = {
       totalEmployees: await User.countDocuments({ role: 'employee' }),
@@ -407,7 +402,6 @@ app.get('/api/dashboard/employee-details/:id', authenticateToken, async (req, re
     const { id } = req.params;
     const { month, year } = req.query;
 
-    // Add validation
     if (!month || !year) {
       return res.status(400).json({ error: 'Month and year are required' });
     }
@@ -422,23 +416,8 @@ app.get('/api/dashboard/employee-details/:id', authenticateToken, async (req, re
 
     const details = attendances.map(attendance => ({
       date: attendance.checkInTime,
-      checkInTime: attendance.checkInTime
-        ? attendance.checkInTime.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-          timeZone: 'Asia/Kolkata'
-        })
-        : '-',
-
-      checkOutTime: attendance.checkOutTime ? attendance.checkOutTime.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-          timeZone: 'Asia/Kolkata'
-        }) : '-',
+      checkInTime: attendance.checkInTime ? formatTimeIST(attendance.checkInTime) : '-',
+      checkOutTime: attendance.checkOutTime ? formatTimeIST(attendance.checkOutTime) : '-',
       workingHours: attendance.checkInTime && attendance.checkOutTime
         ? ((attendance.checkOutTime - attendance.checkInTime) / (1000 * 60 * 60)).toFixed(2)
         : '-',
