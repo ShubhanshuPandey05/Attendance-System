@@ -22,12 +22,12 @@ export const formatTimeIST = (date) => {
 
 // Format date in IST
 export const formatDateIST = (date) => {
-  return DateTime.fromJSDate(new Date(date)).setZone('Asia/Kolkata').toFormat('dd/MM/yyyy');
+  return DateTime.fromISO(date, { zone: 'Asia/Kolkata' }).toFormat('dd/MM/yyyy');
 };
 
 // Check if a date is today in IST
 export const isTodayIST = (date) => {
   const today = getStartOfDayIST();
-  const checkDate = DateTime.fromJSDate(new Date(date)).setZone('Asia/Kolkata').startOf('day');
-  return today.equals(checkDate);
-}; 
+  const checkDate = toIST(date).startOf('day');
+  return today.hasSame(checkDate, 'day'); // Better than .equals for time zone safety
+};

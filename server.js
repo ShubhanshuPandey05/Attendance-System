@@ -345,21 +345,34 @@ app.get('/api/dashboard/employee-summary', authenticateToken, async (req, res) =
         return total;
       }, 0);
 
+      // Check-in Times: in minutes since midnight
       const checkInTimes = attendances
         .filter(a => a.checkInTime)
-        .map(a => new Date(a.checkInTime).getHours() + new Date(a.checkInTime).getMinutes() / 60);
+        .map(a => {
+          const date = new Date(a.checkInTime);
+          return date.getHours() * 60 + date.getMinutes();
+        });
 
+      // Check-out Times: in minutes since midnight
       const checkOutTimes = attendances
         .filter(a => a.checkOutTime)
-        .map(a => new Date(a.checkOutTime).getHours() + new Date(a.checkOutTime).getMinutes() / 60);
+        .map(a => {
+          const date = new Date(a.checkOutTime);
+          return date.getHours() * 60 + date.getMinutes();
+        });
 
+      // Average Check-in Time
       const avgCheckInTime = checkInTimes.length > 0
-        ? new Date(0, 0, 0, Math.floor(checkInTimes.reduce((a, b) => a + b, 0) / checkInTimes.length))
+        ? new Date(0, 0, 0, Math.floor((checkInTimes.reduce((a, b) => a + b, 0) / checkInTimes.length) / 60),
+          Math.round((checkInTimes.reduce((a, b) => a + b, 0) / checkInTimes.length) % 60))
         : null;
 
+      // Average Check-out Time
       const avgCheckOutTime = checkOutTimes.length > 0
-        ? new Date(0, 0, 0, Math.floor(checkOutTimes.reduce((a, b) => a + b, 0) / checkOutTimes.length))
+        ? new Date(0, 0, 0, Math.floor((checkOutTimes.reduce((a, b) => a + b, 0) / checkOutTimes.length) / 60),
+          Math.round((checkOutTimes.reduce((a, b) => a + b, 0) / checkOutTimes.length) % 60))
         : null;
+
 
       return {
         _id: employee._id,
