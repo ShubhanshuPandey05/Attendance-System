@@ -274,7 +274,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 
 app.post('/api/attendance/today', authenticateToken, async (req, res) => {
   try {
-    const today = new Date(indiaMidnight.toISO());
+    const today = getStartOfDayIST().toJSDate();
     today.setHours(0, 0, 0, 0);
     // console.log(user, today);
     const attendance = await Attendance.find({
