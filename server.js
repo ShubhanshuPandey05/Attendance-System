@@ -274,12 +274,12 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 
 app.post('/api/attendance/today', authenticateToken, async (req, res) => {
   try {
-    const today = getStartOfDayIST().toJSDate();
-    today.setHours(0, 0, 0, 0);
+    const startOfDay = getStartOfDayIST().toJSDate();
+    const endOfDay = getEndOfDayIST().toJSDate();
     // console.log(user, today);
     const attendance = await Attendance.find({
       user: req.user.id,
-      checkInTime: { $gte: today },
+      checkInTime: { $gte: startOfDay, $lte: endOfDay },
     });
     // console.log(attendance);
     if (attendance.length > 0) {
